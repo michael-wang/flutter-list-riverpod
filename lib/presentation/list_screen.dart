@@ -11,24 +11,31 @@ class ListScreen extends ConsumerWidget {
     final repo = ref.read(dataRepoProvider.notifier);
     return list.when(
       data: (data) {
-        return ListView.builder(
-          itemCount: data.items.length + 1,
-          itemBuilder: (context, index) {
-            if (index >= data.items.length) {
-              // last item: show loading spinner as we load more data
-              repo.loadPage();
-              return const Center(child: CircularProgressIndicator());
-            }
-            final item = data.items[index];
-            return CheckboxListTile(
-              value: item.checked,
-              onChanged: (checked) {
-                repo.toggleItemChecked(index);
-              },
-              title: Text(item.title),
-              subtitle: Text(item.updated.toIso8601String()),
-            );
+        // Pull to refresh is accomplished by RefreshIndicator and onRefresh
+        // call repo.reload() which reloads data (and clear checked states).
+        return RefreshIndicator(
+          onRefresh: () async {
+            await repo.reload();
           },
+          child: ListView.builder(
+            itemCount: data.items.length + 1,
+            itemBuilder: (context, index) {
+              if (index >= data.items.length) {
+                // last item: show loading spinner as we load more data
+                repo.loadPage();
+                return const Center(child: CircularProgressIndicator());
+              }
+              final item = data.items[index];
+              return CheckboxListTile(
+                value: item.checked,
+                onChanged: (checked) {
+                  repo.toggleItemChecked(index);
+                },
+                title: Text(item.title),
+                subtitle: Text(item.updated.toIso8601String()),
+              );
+            },
+          ),
         );
       },
       error: (err, _) => ErrorWidget(err),

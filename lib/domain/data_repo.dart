@@ -47,7 +47,7 @@ class DataRepo extends _$DataRepo {
     return Paginated<Item>(items: items, pageIndex: 0, pageSize: pageSize);
   }
 
-  loadPage() async {
+  Future<void> loadPage() async {
     update((prev) async {
       final pageIndex = prev.pageIndex + 1;
       final start = pageIndex * prev.pageSize;
@@ -65,6 +65,17 @@ class DataRepo extends _$DataRepo {
       return prev.copyWith(
           items: List<Item>.from(prev.items)
             ..[index] = item.copyWith(checked: !item.checked));
+    });
+  }
+
+  Future<void> reload() async {
+    final items = await _fetch(0, pageSize);
+    update((prev) {
+      return Paginated<Item>(
+        items: items,
+        pageIndex: 0,
+        pageSize: pageSize,
+      );
     });
   }
 }
