@@ -26,6 +26,7 @@ class ListScreen extends ConsumerWidget {
                 repo.toggleItemChecked(index);
               },
               title: Text(item.title),
+              subtitle: Text(item.updated.toIso8601String()),
             );
           },
         );

@@ -10,6 +10,6 @@ FutureOr<List<Item>> remoteSource(RemoteSourceRef ref,
   await Future.delayed(const Duration(milliseconds: 250));
   return List<Item>.generate(
     limit,
-    (index) => Item(title: 'Item #${start + index}'),
+    (index) => Item.create('Item #${start + index}'),
   );
 }
