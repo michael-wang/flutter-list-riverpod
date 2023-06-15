@@ -1,46 +1,70 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_list_riverpod/domain/item.dart';
+import 'package:flutter_list_riverpod/infra/remote_source.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'item.dart';
+part 'data_repo.g.dart';
 
-class ListState extends Equatable {
-  final List<Item> list;
-  final int nextPage;
+class Paginated<T> extends Equatable {
+  final List<T> items;
+  final int pageIndex;
+  final int pageSize;
 
-  const ListState({required this.list, required this.nextPage});
+  const Paginated({
+    this.items = const [],
+    required this.pageIndex,
+    required this.pageSize,
+  });
 
   @override
-  List<Object?> get props => [list, nextPage];
+  List<Object?> get props => [items, pageIndex, pageSize];
+
+  Paginated<T> copyWith({
+    List<T>? items,
+    int? pageIndex,
+    int? pageSize,
+  }) {
+    return Paginated<T>(
+      items: items ?? [],
+      pageIndex: pageIndex ?? this.pageIndex,
+      pageSize: pageSize ?? this.pageSize,
+    );
+  }
 }
 
-class DataRepo extends StateNotifier<ListState> {
-  static const itemsPerPage = 20;
+@riverpod
+class DataRepo extends _$DataRepo {
+  static const pageSize = 15;
 
-  DataRepo() : super(const ListState(list: [], nextPage: 0));
+  Future<List<Item>> _fetch(int start, int limit) async {
+    return await ref
+        .read(remoteSourceProvider.call(start: start, limit: limit).future);
+  }
 
-  Future<void> fetchNextPage() async {
-    await Future.delayed(const Duration(milliseconds: 250));
+  @override
+  FutureOr<Paginated<Item>> build() async {
+    final items = await _fetch(0, pageSize);
+    return Paginated<Item>(items: items, pageIndex: 0, pageSize: pageSize);
+  }
 
-    final start = state.nextPage * itemsPerPage;
-    final list = List<Item>.generate(
-      20,
-      (index) => Item(title: 'Item #${start + index}'),
-    );
-
-    state = ListState(
-      list: [...state.list, ...list],
-      nextPage: state.nextPage + 1,
-    );
+  loadPage() async {
+    update((prev) async {
+      final pageIndex = prev.pageIndex + 1;
+      final start = pageIndex * prev.pageSize;
+      final list = await _fetch(start, pageSize);
+      return prev.copyWith(
+        items: [...prev.items, ...list],
+        pageIndex: pageIndex,
+      );
+    });
   }
 
   void toggleItemChecked(int index) {
-    final item = state.list[index];
-    final newItem = item.copyWith(checked: !item.checked);
-    state = ListState(
-        list: List<Item>.from(state.list)..[index] = newItem,
-        nextPage: state.nextPage);
+    update((prev) {
+      final item = prev.items[index];
+      return prev.copyWith(
+          items: List<Item>.from(prev.items)
+            ..[index] = item.copyWith(checked: !item.checked));
+    });
   }
 }
-
-final pageProvider =
-    StateNotifierProvider<DataRepo, ListState>((ref) => DataRepo());

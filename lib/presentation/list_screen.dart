@@ -7,25 +7,31 @@ class ListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final page = ref.watch(pageProvider);
-    final repo = ref.read(pageProvider.notifier);
-    return ListView.builder(
-      itemCount: page.list.length + 1,
-      itemBuilder: (context, index) {
-        if (index >= page.list.length) {
-          // last item: show loading spinner as we load more data
-          repo.fetchNextPage();
-          return const Center(child: CircularProgressIndicator());
-        }
-        final item = page.list[index];
-        return CheckboxListTile(
-          value: item.checked,
-          onChanged: (checked) {
-            repo.toggleItemChecked(index);
+    final list = ref.watch(dataRepoProvider);
+    final repo = ref.read(dataRepoProvider.notifier);
+    return list.when(
+      data: (data) {
+        return ListView.builder(
+          itemCount: data.items.length + 1,
+          itemBuilder: (context, index) {
+            if (index >= data.items.length) {
+              // last item: show loading spinner as we load more data
+              repo.loadPage();
+              return const Center(child: CircularProgressIndicator());
+            }
+            final item = data.items[index];
+            return CheckboxListTile(
+              value: item.checked,
+              onChanged: (checked) {
+                repo.toggleItemChecked(index);
+              },
+              title: Text(item.title),
+            );
           },
-          title: Text(item.title),
         );
       },
+      error: (err, _) => ErrorWidget(err),
+      loading: () => const Center(child: CircularProgressIndicator()),
     );
   }
 }
