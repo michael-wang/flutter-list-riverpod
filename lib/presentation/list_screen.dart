@@ -32,7 +32,7 @@ class ListScreen extends ConsumerWidget {
                   repo.toggleItemChecked(index);
                 },
                 title: Text(item.title),
-                subtitle: Text(item.updated.toIso8601String()),
+                subtitle: Text(item.updated.readableTime()),
               );
             },
           ),
@@ -41,5 +41,26 @@ class ListScreen extends ConsumerWidget {
       error: (err, _) => ErrorWidget(err),
       loading: () => const Center(child: CircularProgressIndicator()),
     );
+  }
+}
+
+extension on DateTime {
+  String readableTime() {
+    String h = _twoDigits(hour);
+    String min = _twoDigits(minute);
+    String sec = _twoDigits(second);
+    String ms = _threeDigits(millisecond);
+    return '$h : $min : $sec . $ms';
+  }
+
+  static String _threeDigits(int n) {
+    if (n >= 100) return "$n";
+    if (n >= 10) return "0$n";
+    return "00$n";
+  }
+
+  static String _twoDigits(int n) {
+    if (n >= 10) return "$n";
+    return "0$n";
   }
 }
