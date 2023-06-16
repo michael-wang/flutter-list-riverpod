@@ -45,3 +45,4 @@ app.*.map.json
 
 # It's a common practice not to include generated code in source control
 *.g.dart
+*.freezed.dart

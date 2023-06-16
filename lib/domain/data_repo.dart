@@ -1,35 +1,18 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter_list_riverpod/domain/item.dart';
 import 'package:flutter_list_riverpod/infra/remote_source.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+part 'data_repo.freezed.dart';
 part 'data_repo.g.dart';
 
-class Paginated<T> extends Equatable {
-  final List<T> items;
-  final int pageIndex;
-  final int pageSize;
-
-  const Paginated({
-    this.items = const [],
-    required this.pageIndex,
-    required this.pageSize,
-  });
-
-  @override
-  List<Object?> get props => [items, pageIndex, pageSize];
-
-  Paginated<T> copyWith({
-    List<T>? items,
-    int? pageIndex,
-    int? pageSize,
-  }) {
-    return Paginated<T>(
-      items: items ?? [],
-      pageIndex: pageIndex ?? this.pageIndex,
-      pageSize: pageSize ?? this.pageSize,
-    );
-  }
+@freezed
+class Paginated<T> with _$Paginated<T> {
+  factory Paginated({
+    required List<T> items,
+    required int pageIndex,
+    required int pageSize,
+  }) = _Paginated<T>;
 }
 
 @riverpod
@@ -63,8 +46,7 @@ class DataRepo extends _$DataRepo {
     update((prev) {
       final item = prev.items[index];
       return prev.copyWith(
-          items: List<Item>.from(prev.items)
-            ..[index] = item.copyWith(checked: !item.checked));
+          items: List<Item>.from(prev.items)..[index] = item.toggleChecked());
     });
   }
 

@@ -1,32 +1,36 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class Item extends Equatable {
-  final String title;
-  final bool checked;
-  // Save DateTime's millisecondsSinceEpoch because DateTime does not has const
-  // constructor...
-  final int _updated;
+part 'item.freezed.dart';
 
-  const Item({
-    required this.title,
-    this.checked = false,
-    int? updated,
-  }) : _updated = updated ?? 0;
+@freezed
+class Item with _$Item {
+  // Call Item.create so you don't have to deal with updatedTimestamp.
+  factory Item({
+    required String title,
+    required bool checked,
+    // Save DateTime's millisecondsSinceEpoch because DateTime does not has const
+    required int updatedTimestamp,
+  }) = _Item;
 
+  // In order to have method need private constructor.
+  const Item._();
+
+  // Factory to hide 'how updated work'.
   factory Item.create(String title) {
-    return Item(title: title, updated: DateTime.now().millisecondsSinceEpoch);
-  }
-
-  @override
-  List<Object?> get props => [title, checked, _updated];
-
-  DateTime get updated => DateTime.fromMillisecondsSinceEpoch(_updated);
-
-  Item copyWith({String? title, bool? checked}) {
     return Item(
-      title: title ?? this.title,
-      checked: checked ?? this.checked,
-      updated: DateTime.now().millisecondsSinceEpoch,
+      title: title,
+      checked: false,
+      updatedTimestamp: _ts(),
     );
   }
+
+  // Getter to hide 'how updated work'.
+  DateTime get updated => DateTime.fromMillisecondsSinceEpoch(updatedTimestamp);
+
+  Item toggleChecked() => copyWith(
+        checked: !this.checked,
+        updatedTimestamp: _ts(),
+      );
+
+  static int _ts() => DateTime.now().millisecondsSinceEpoch;
 }
