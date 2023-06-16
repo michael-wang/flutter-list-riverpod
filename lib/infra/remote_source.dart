@@ -10,7 +10,7 @@ part 'remote_source.g.dart';
 FutureOr<List<Photo>> remoteSource(RemoteSourceRef ref,
     {required int start, int limit = 20}) async {
   final resp = await http.get(Uri.parse(
-      'http://jsonplaceholder.typicode.com/photos?_start=$start&_limit=$limit'));
+      'https://jsonplaceholder.typicode.com/photos?_start=$start&_limit=$limit'));
   if (resp.statusCode != 200) {
     AsyncValue.error(Exception(resp.reasonPhrase), StackTrace.current);
     return <Photo>[];
