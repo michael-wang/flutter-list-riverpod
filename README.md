@@ -18,3 +18,8 @@ PS: you can let build_runner keep watching for code changes: `dart run build_run
 # TODO
 
 - Cache thumbnail images with limit size (to prevent App keep eating storage).
+
+# Architecture
+
+Mostly clean architecture with some homemade simplifications:
+![architecture](doc/flutter-arch.png).
