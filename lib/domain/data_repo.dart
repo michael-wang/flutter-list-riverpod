@@ -19,20 +19,14 @@ class Paginated<T> with _$Paginated<T> {
 class DataRepo extends _$DataRepo {
   static const pageSize = 20;
 
-  Future<(List<Photo>, Object? err)> _fetch(int start, int limit) async {
+  Future<List<Photo>> _fetch(int start, int limit) async {
     return await ref
-        .read(dataSourceProvider.call(start: start, limit: limit).future);
+        .read(dataSourceProvider(start: start, limit: limit).future);
   }
 
   @override
   FutureOr<Paginated<Photo>> build() async {
-    final (photos, err) = await _fetch(0, pageSize);
-    // Throw exception and let riverpod deal with it, should results in widget:
-    // final photos = ref.watch(dataRepoProvider);
-    // photos.when(
-    //   error: ...
-    // );
-    if (err != null) throw err;
+    final photos = await _fetch(0, pageSize);
     return Paginated<Photo>(items: photos, pageIndex: 0, pageSize: pageSize);
   }
 
@@ -40,8 +34,7 @@ class DataRepo extends _$DataRepo {
     update((prev) async {
       final pageIndex = prev.pageIndex + 1;
       final start = pageIndex * prev.pageSize;
-      final (photos, err) = await _fetch(start, pageSize);
-      if (err != null) throw err;
+      final photos = await _fetch(start, pageSize);
 
       return prev.copyWith(
         items: [...prev.items, ...photos],
@@ -59,8 +52,7 @@ class DataRepo extends _$DataRepo {
   }
 
   Future<void> reload() async {
-    final (photos, err) = await _fetch(0, pageSize);
-    if (err != null) throw err;
+    final photos = await _fetch(0, pageSize);
 
     update((prev) {
       return Paginated<Photo>(

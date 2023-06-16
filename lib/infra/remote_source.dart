@@ -7,14 +7,15 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'remote_source.g.dart';
 
 @riverpod
-FutureOr<(List<Photo>, Object? err)> remoteSource(RemoteSourceRef ref,
+FutureOr<List<Photo>> remoteSource(RemoteSourceRef ref,
     {required int start, int limit = 20}) async {
   final resp = await http.get(Uri.parse(
       'http://jsonplaceholder.typicode.com/photos?_start=$start&_limit=$limit'));
   if (resp.statusCode != 200) {
-    return (<Photo>[], Exception(resp.reasonPhrase));
+    AsyncValue.error(Exception(resp.reasonPhrase), StackTrace.current);
+    return <Photo>[];
   }
 
   final photos = Photo.fromJsonList(jsonDecode(resp.body));
-  return (photos, null);
+  return photos;
 }

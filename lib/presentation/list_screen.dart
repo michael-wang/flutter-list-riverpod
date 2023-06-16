@@ -34,8 +34,8 @@ class ListScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8.0),
                   child: Image.network(
                     photo.thumbnailUrl,
-                    width: kMinInteractiveDimension,
-                    height: kMinInteractiveDimension,
+                    width: 96,
+                    height: 96,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -49,26 +49,3 @@ class ListScreen extends ConsumerWidget {
     );
   }
 }
-
-/*
-extension on DateTime {
-  String readableTime() {
-    String h = _twoDigits(hour);
-    String min = _twoDigits(minute);
-    String sec = _twoDigits(second);
-    String ms = _threeDigits(millisecond);
-    return '$h : $min : $sec . $ms';
-  }
-
-  static String _threeDigits(int n) {
-    if (n >= 100) return "$n";
-    if (n >= 10) return "0$n";
-    return "00$n";
-  }
-
-  static String _twoDigits(int n) {
-    if (n >= 10) return "$n";
-    return "0$n";
-  }
-}
-*/

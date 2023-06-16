@@ -6,6 +6,7 @@ import 'package:logger/logger.dart';
 final log = Logger();
 
 void main() {
+  // WidgetsFlutterBinding.ensureInitialized();
   runApp(
     const ProviderScope(
       child: MainApp(),
