@@ -7,10 +7,10 @@ class ListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final list = ref.watch(dataRepoProvider);
+    final paginated = ref.watch(dataRepoProvider);
     final repo = ref.read(dataRepoProvider.notifier);
-    return list.when(
-      data: (data) {
+    return paginated.when(
+      data: (page) {
         // Pull to refresh is accomplished by RefreshIndicator and onRefresh
         // call repo.reload() which reloads data (and clear checked states).
         return RefreshIndicator(
@@ -18,21 +18,27 @@ class ListScreen extends ConsumerWidget {
             await repo.reload();
           },
           child: ListView.builder(
-            itemCount: data.items.length + 1,
+            itemCount: page.items.length + 1,
             itemBuilder: (context, index) {
-              if (index >= data.items.length) {
+              if (index >= page.items.length) {
                 // last item: show loading spinner as we load more data
                 repo.loadPage();
                 return const Center(child: CircularProgressIndicator());
               }
-              final item = data.items[index];
+              final photo = page.items[index];
               return CheckboxListTile(
-                value: item.checked,
-                onChanged: (checked) {
-                  repo.toggleItemChecked(index);
-                },
-                title: Text(item.title),
-                subtitle: Text(item.updated.readableTime()),
+                value: photo.selected,
+                onChanged: (_) => repo.toggleSelected(index),
+                title: Text(photo.url),
+                secondary: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: Image.network(
+                    photo.thumbnailUrl,
+                    width: kMinInteractiveDimension,
+                    height: kMinInteractiveDimension,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               );
             },
           ),
@@ -44,6 +50,7 @@ class ListScreen extends ConsumerWidget {
   }
 }
 
+/*
 extension on DateTime {
   String readableTime() {
     String h = _twoDigits(hour);
@@ -64,3 +71,4 @@ extension on DateTime {
     return "0$n";
   }
 }
+*/

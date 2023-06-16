@@ -1,5 +1,5 @@
-import 'package:flutter_list_riverpod/domain/item.dart';
-import 'package:flutter_list_riverpod/infra/remote_source.dart';
+import 'package:flutter_list_riverpod/domain/photo.dart';
+import 'package:flutter_list_riverpod/infra/data_source.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -17,44 +17,54 @@ class Paginated<T> with _$Paginated<T> {
 
 @riverpod
 class DataRepo extends _$DataRepo {
-  static const pageSize = 15;
+  static const pageSize = 20;
 
-  Future<List<Item>> _fetch(int start, int limit) async {
+  Future<(List<Photo>, Object? err)> _fetch(int start, int limit) async {
     return await ref
-        .read(remoteSourceProvider.call(start: start, limit: limit).future);
+        .read(dataSourceProvider.call(start: start, limit: limit).future);
   }
 
   @override
-  FutureOr<Paginated<Item>> build() async {
-    final items = await _fetch(0, pageSize);
-    return Paginated<Item>(items: items, pageIndex: 0, pageSize: pageSize);
+  FutureOr<Paginated<Photo>> build() async {
+    final (photos, err) = await _fetch(0, pageSize);
+    // Throw exception and let riverpod deal with it, should results in widget:
+    // final photos = ref.watch(dataRepoProvider);
+    // photos.when(
+    //   error: ...
+    // );
+    if (err != null) throw err;
+    return Paginated<Photo>(items: photos, pageIndex: 0, pageSize: pageSize);
   }
 
   Future<void> loadPage() async {
     update((prev) async {
       final pageIndex = prev.pageIndex + 1;
       final start = pageIndex * prev.pageSize;
-      final list = await _fetch(start, pageSize);
+      final (photos, err) = await _fetch(start, pageSize);
+      if (err != null) throw err;
+
       return prev.copyWith(
-        items: [...prev.items, ...list],
+        items: [...prev.items, ...photos],
         pageIndex: pageIndex,
       );
     });
   }
 
-  void toggleItemChecked(int index) {
+  void toggleSelected(int index) {
     update((prev) {
       final item = prev.items[index];
       return prev.copyWith(
-          items: List<Item>.from(prev.items)..[index] = item.toggleChecked());
+          items: List<Photo>.from(prev.items)..[index] = item.toggleSelected());
     });
   }
 
   Future<void> reload() async {
-    final items = await _fetch(0, pageSize);
+    final (photos, err) = await _fetch(0, pageSize);
+    if (err != null) throw err;
+
     update((prev) {
-      return Paginated<Item>(
-        items: items,
+      return Paginated<Photo>(
+        items: photos,
         pageIndex: 0,
         pageSize: pageSize,
       );
